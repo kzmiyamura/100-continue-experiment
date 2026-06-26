@@ -17,6 +17,10 @@ export class ApiService {
     return this.http.post(`${this.baseUrl}/api/data`, { message });
   }
 
+  postTestBody(body: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/api/test-body`, body);
+  }
+
   getLogs(): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/api/logs`);
   }

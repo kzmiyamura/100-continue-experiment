@@ -167,21 +167,59 @@ export class AppComponent implements OnInit, OnDestroy {
     const idVal = this.testIdValue || 'value';
 
     const labels: Record<string, string> = {
-      'normal':       `① 正常送信 → {"id":"${idVal}"}`,
-      'null':         '② null値  → {"id":null}',
-      'empty-string': '③ 空文字列 → {"id":""}',
-      'empty-body':   '④ 空ボディ → (bodyなし)',
-      'truncated':    `⑤ 途中で切れた → 先頭7byteのみ送信`
+      'normal':           `① 正常送信 → id:"${idVal}"`,
+      'null':             '② null値  → id:null',
+      'empty-string':     '③ 空文字列 → id:""',
+      'empty-body':       '④ 空ボディ → bodyなし',
+      'truncated':        '⑤ 途中で切れた → 先頭7byteのみ',
+      'ref-null-before':  '⑥ subscribe前にnull代入',
+      'ref-null-mutate':  '⑦ subscribe前にプロパティをnullに変更',
     };
 
     let body: BodyInit | undefined;
+
+    if (type === 'ref-null-before') {
+      // HttpClientにオブジェクトを渡してからsubscribe前にnullを代入
+      let obj: any = { id: idVal };
+      const obs = this.api.postTestBody(obj);
+      obj = null; // 参照を差し替え（HttpClientが持つ参照には影響しない）
+      obs.subscribe({
+        next: (data: any) => {
+          this.testResult = { label: labels[type] + `（結果: obj=nullにしたが元の値が送られるか？）`, status: 'result-ok', data };
+          this.cdr.detectChanges();
+        },
+        error: (e: any) => {
+          this.testResult = { label: labels[type], status: 'result-error', data: { error: e.message } };
+          this.cdr.detectChanges();
+        }
+      });
+      return;
+    }
+
+    if (type === 'ref-null-mutate') {
+      // HttpClientにオブジェクトを渡してからsubscribe前にプロパティをnullに変更
+      const obj: any = { id: idVal };
+      const obs = this.api.postTestBody(obj);
+      obj.id = null; // プロパティを変更（同じ参照なのでHttpClientにも影響する？）
+      obs.subscribe({
+        next: (data: any) => {
+          this.testResult = { label: labels[type] + `（結果: id=nullにしたが反映されるか？）`, status: 'result-ok', data };
+          this.cdr.detectChanges();
+        },
+        error: (e: any) => {
+          this.testResult = { label: labels[type], status: 'result-error', data: { error: e.message } };
+          this.cdr.detectChanges();
+        }
+      });
+      return;
+    }
+
     switch (type) {
       case 'normal':       body = JSON.stringify({ id: idVal }); break;
       case 'null':         body = JSON.stringify({ id: null }); break;
       case 'empty-string': body = JSON.stringify({ id: '' }); break;
       case 'empty-body':   body = undefined; break;
       case 'truncated':
-        // 意図的に不完全なJSONを7byteだけ送る
         const full = JSON.stringify({ id: idVal });
         body = new Blob([full.slice(0, 7)], { type: 'application/json' });
         break;

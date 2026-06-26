@@ -157,6 +157,12 @@
       <button class="btn btn-test btn-danger" (click)="testBody('truncated')">
         ⑤ 途中で切れた<br><small>先頭7byteのみ送信</small>
       </button>
+      <button class="btn btn-test btn-ref" (click)="testBody('ref-null-before')">
+        ⑥ 参照をnullに差替<br><small>post後・subscribe前</small>
+      </button>
+      <button class="btn btn-test btn-ref" (click)="testBody('ref-null-mutate')">
+        ⑦ プロパティをnullに<br><small>post後・subscribe前</small>
+      </button>
     </div>
 
     <div *ngIf="testResult" class="test-result" [ngClass]="testResult.status">
