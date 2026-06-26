@@ -1,9 +1,0 @@
-com/example/continueexperiment/model/LogEntry$Status.class
-com/example/continueexperiment/ContinueExperimentApplication.class
-com/example/continueexperiment/model/DataResponse$DataResponseBuilder.class
-com/example/continueexperiment/config/WebConfig.class
-com/example/continueexperiment/service/ExperimentService.class
-com/example/continueexperiment/model/LogEntry.class
-com/example/continueexperiment/controller/DataController.class
-com/example/continueexperiment/model/LogEntry$LogEntryBuilder.class
-com/example/continueexperiment/model/DataResponse.class
