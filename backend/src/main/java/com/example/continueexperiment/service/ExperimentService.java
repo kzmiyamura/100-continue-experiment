@@ -2,7 +2,8 @@ package com.example.continueexperiment.service;
 
 import com.example.continueexperiment.model.LogEntry;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -13,9 +14,10 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-@Slf4j
 @Service
 public class ExperimentService {
+
+    private static final Logger log = LoggerFactory.getLogger(ExperimentService.class);
 
     private final Deque<LogEntry> logEntries = new ConcurrentLinkedDeque<>();
     private final List<SseEmitter> sseEmitters = new CopyOnWriteArrayList<>();

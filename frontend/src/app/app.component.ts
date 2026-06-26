@@ -43,6 +43,9 @@ export class AppComponent implements OnInit, OnDestroy {
   // Body Format Test
   testIdValue = '';
   testResult: { label: string; status: string; data: any } | null = null;
+
+  // Jsonb Test
+  jsonbResult: { label: string; status: string; data: any } | null = null;
   configMessage = '';
 
   // SSE / Live Log
@@ -235,6 +238,47 @@ export class AppComponent implements OnInit, OnDestroy {
       };
     } catch (e: any) {
       this.testResult = {
+        label: labels[type],
+        status: 'result-error',
+        data: { error: e.message }
+      };
+    }
+    this.cdr.detectChanges();
+  }
+
+  async testJsonb(type: string): Promise<void> {
+    this.jsonbResult = null;
+    const url = '/api/test-jsonb';
+    const headers = { 'Content-Type': 'application/json' };
+
+    const labels: Record<string, string> = {
+      'normal':      '① 正常: id="abc123"',
+      'null-value':  '② null値: id=null',
+      'empty-body':  '③ 空ボディ',
+      'truncated':   '④ 途中で切れた（7byte）',
+      'broken-json': '⑤ 不正JSON',
+    };
+
+    let body: BodyInit | undefined;
+    switch (type) {
+      case 'normal':      body = JSON.stringify({ id: 'abc123' }); break;
+      case 'null-value':  body = JSON.stringify({ id: null }); break;
+      case 'empty-body':  body = undefined; break;
+      case 'truncated':
+        body = new Blob(['{"id":"a'.slice(0, 7)], { type: 'application/json' }); break;
+      case 'broken-json': body = '{id:null}'; break;  // キー・値にクォートなし
+    }
+
+    try {
+      const res = await fetch(url, { method: 'POST', headers, body });
+      const data = await res.json();
+      this.jsonbResult = {
+        label: labels[type],
+        status: res.ok ? 'result-ok' : 'result-error',
+        data
+      };
+    } catch (e: any) {
+      this.jsonbResult = {
         label: labels[type],
         status: 'result-error',
         data: { error: e.message }

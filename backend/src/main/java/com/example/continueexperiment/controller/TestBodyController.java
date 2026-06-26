@@ -3,7 +3,8 @@ package com.example.continueexperiment.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,12 +13,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-@Slf4j
 @RestController
 @RequestMapping("/api")
 @CrossOrigin(origins = "*")
 public class TestBodyController {
 
+    private static final Logger log = LoggerFactory.getLogger(TestBodyController.class);
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**

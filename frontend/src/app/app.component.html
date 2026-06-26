@@ -171,6 +171,38 @@
     </div>
   </section>
 
+  <!-- Section 5: JsonbException Test -->
+  <section class="card">
+    <h2 class="section-title">
+      <span class="section-number">5</span>
+      JsonbException テスト（OpenLiberty再現）
+    </h2>
+    <p class="hint">JSON-B（Yasson）で実際にパースして JsonbException が起きるか確認します</p>
+
+    <div class="test-buttons">
+      <button class="btn btn-test" (click)="testJsonb('normal')">
+        ① 正常<br><small>id: "abc123"</small>
+      </button>
+      <button class="btn btn-test" (click)="testJsonb('null-value')">
+        ② null値<br><small>id: null → NPE</small>
+      </button>
+      <button class="btn btn-test btn-danger" (click)="testJsonb('empty-body')">
+        ③ 空ボディ<br><small>→ JsonbException</small>
+      </button>
+      <button class="btn btn-test btn-danger" (click)="testJsonb('truncated')">
+        ④ 途中で切れた<br><small>→ JsonbException</small>
+      </button>
+      <button class="btn btn-test btn-danger" (click)="testJsonb('broken-json')">
+        ⑤ 不正JSON<br><small>id:null（クォートなし）</small>
+      </button>
+    </div>
+
+    <div *ngIf="jsonbResult" class="test-result" [ngClass]="jsonbResult.status">
+      <div class="result-label">{{ jsonbResult.label }}</div>
+      <pre class="response-json">{{ formatJson(jsonbResult.data) }}</pre>
+    </div>
+  </section>
+
   <!-- Experiment Guide -->
   <section class="card card-guide">
     <h2 class="section-title">実験手順</h2>
