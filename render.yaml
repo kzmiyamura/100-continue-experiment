@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: continue-experiment
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    envVars:
+      - key: PORT
+        value: 8080

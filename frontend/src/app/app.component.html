@@ -1,0 +1,159 @@
+<div class="container">
+  <header class="header">
+    <h1>HTTP 100-Continue 実験</h1>
+    <p class="subtitle">モバイルデバイスでのバックグラウンド移行時のリクエスト挙動を調査</p>
+  </header>
+
+  <!-- Section 1: Send Request -->
+  <section class="card">
+    <h2 class="section-title">
+      <span class="section-number">1</span>
+      リクエスト送信
+    </h2>
+
+    <div class="form-group">
+      <input
+        type="text"
+        [(ngModel)]="message"
+        placeholder="テストメッセージを入力..."
+        class="text-input"
+        [disabled]="requestState === 'pending'"
+        (keyup.enter)="sendRequest()"
+      />
+    </div>
+
+    <button
+      class="btn btn-primary"
+      (click)="sendRequest()"
+      [disabled]="requestState === 'pending' || !message.trim()"
+    >
+      <span *ngIf="requestState !== 'pending'">送信</span>
+      <span *ngIf="requestState === 'pending'" class="sending-text">
+        <span class="spinner"></span> 待機中...
+      </span>
+    </button>
+
+    <!-- Pending state indicator -->
+    <div *ngIf="requestState === 'pending'" class="state-box state-waiting">
+      <div class="state-icon">⏳</div>
+      <div class="state-content">
+        <strong>100-Continue 実験ウィンドウ</strong>
+        <p>サーバーはボディ読み取りを {{ delaySeconds }}秒間 遅延しています。<br>
+        <strong>今すぐスマホをバックグラウンドにするか画面をオフにしてみてください！</strong></p>
+      </div>
+    </div>
+
+    <!-- Success state -->
+    <div *ngIf="requestState === 'completed'" class="state-box state-completed">
+      <div class="state-icon">✅</div>
+      <div class="state-content">
+        <strong>ボディ受信完了</strong>
+        <pre class="response-json">{{ formatJson(response) }}</pre>
+      </div>
+    </div>
+
+    <!-- Error state -->
+    <div *ngIf="requestState === 'error'" class="state-box state-error">
+      <div class="state-icon">❌</div>
+      <div class="state-content">
+        <strong>接続エラー / ボディ未受信</strong>
+        <p>{{ errorMessage }}</p>
+        <p class="hint">これはモバイルがバックグラウンドに移行してリクエストが中断された可能性があります。</p>
+      </div>
+    </div>
+
+    <p class="note">
+      ※ 遅延中（{{ delaySeconds }}秒間）にスマホをバックグラウンドにするか画面をオフにしてみてください
+    </p>
+  </section>
+
+  <!-- Section 2: Config -->
+  <section class="card">
+    <h2 class="section-title">
+      <span class="section-number">2</span>
+      遅延設定
+    </h2>
+
+    <div class="config-row">
+      <label class="config-label">ボディ読み取り遅延（秒）:</label>
+      <input
+        type="number"
+        [(ngModel)]="delaySeconds"
+        min="0"
+        max="300"
+        class="number-input"
+      />
+      <button class="btn btn-secondary" (click)="setConfig()">設定</button>
+    </div>
+
+    <p *ngIf="configMessage" class="config-message">{{ configMessage }}</p>
+
+    <div class="config-info">
+      <p><strong>現在の設定:</strong> {{ delaySeconds }}秒の遅延</p>
+      <p class="hint">
+        この遅延は「実験ウィンドウ」です。<br>
+        Expect: 100-continue ヘッダーがある場合、TomcatはgetInputStream()が呼ばれた時点で 100 Continue を返します。<br>
+        この遅延によって、その応答を意図的に遅らせます。
+      </p>
+    </div>
+  </section>
+
+  <!-- Section 3: Live Log (SSE) -->
+  <section class="card">
+    <h2 class="section-title">
+      <span class="section-number">3</span>
+      リアルタイムログ (SSE)
+      <span class="sse-status" [class.connected]="sseConnected" [class.disconnected]="!sseConnected">
+        {{ sseConnected ? '● 接続中' : '○ 未接続' }}
+      </span>
+    </h2>
+
+    <div class="log-container" #logContainer>
+      <div *ngIf="liveLog.length === 0" class="log-empty">
+        ログがありません。リクエストを送信してください。
+      </div>
+      <div
+        *ngFor="let log of liveLog"
+        class="log-entry"
+        [ngClass]="getLogClass(log.type)"
+      >
+        <span class="log-time">{{ log.timestamp }}</span>
+        <span class="log-type-badge">{{ log.type }}</span>
+        <span class="log-message">{{ log.message }}</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Experiment Guide -->
+  <section class="card card-guide">
+    <h2 class="section-title">実験手順</h2>
+    <ol class="guide-list">
+      <li>遅延秒数を設定（デフォルト: 10秒）</li>
+      <li>スマホのブラウザでこのページを開く</li>
+      <li>メッセージを入力して「送信」をタップ</li>
+      <li>送信直後（待機中の表示が出たら）スマホをバックグラウンドにするか画面をオフにする</li>
+      <li>10秒後にスマホを再確認する</li>
+      <li>リアルタイムログで「ボディ受信完了」か「エラー」を確認する</li>
+    </ol>
+    <div class="guide-result">
+      <div class="result-item">
+        <span class="result-icon completed-icon">✅</span>
+        <div>
+          <strong>ボディ受信完了</strong> → バックグラウンドでもボディは送信されていた
+        </div>
+      </div>
+      <div class="result-item">
+        <span class="result-icon error-icon">❌</span>
+        <div>
+          <strong>エラー/接続断</strong> → バックグラウンド移行でTCPコネクションが切れた
+        </div>
+      </div>
+      <div class="result-item">
+        <span class="result-icon waiting-icon">⏳</span>
+        <div>
+          <strong>ヘッダーのみ受信</strong> → 100-Continue待ちでボディが来なかった（Expect: 100-continueの挙動）
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
