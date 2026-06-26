@@ -384,3 +384,32 @@
     gap: 8px;
   }
 }
+
+/* Body Format Test */
+.test-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.btn-test {
+  flex: 1;
+  min-width: 140px;
+  padding: 10px 8px;
+  font-size: 13px;
+  background: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: center;
+  line-height: 1.4;
+}
+.btn-test small { font-size: 11px; opacity: 0.85; }
+.btn-test:hover { background: #4f46e5; }
+.btn-danger { background: #dc2626; }
+.btn-danger:hover { background: #b91c1c; }
+.test-result { margin-top: 12px; padding: 12px; border-radius: 8px; }
+.test-result .result-label { font-weight: bold; margin-bottom: 8px; font-size: 14px; }
+.result-ok  { background: #d1fae5; border-left: 4px solid #10b981; }
+.result-error { background: #fee2e2; border-left: 4px solid #ef4444; }

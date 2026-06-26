@@ -124,6 +124,47 @@
     </div>
   </section>
 
+  <!-- Section 4: Body Format Test -->
+  <section class="card">
+    <h2 class="section-title">
+      <span class="section-number">4</span>
+      ボディ形式テスト
+    </h2>
+    <p class="hint">1つの変数(id)を様々な形式で送り、サーバーが何を受け取るかを確認します</p>
+
+    <div class="form-group">
+      <input
+        type="text"
+        [(ngModel)]="testIdValue"
+        placeholder="idの値を入力（例: user123）"
+        class="text-input"
+      />
+    </div>
+
+    <div class="test-buttons">
+      <button class="btn btn-test" (click)="testBody('normal')">
+        ① 正常送信<br><small>id: "{{ testIdValue || 'value' }}"</small>
+      </button>
+      <button class="btn btn-test" (click)="testBody('null')">
+        ② null値<br><small>id: null</small>
+      </button>
+      <button class="btn btn-test" (click)="testBody('empty-string')">
+        ③ 空文字列<br><small>id: ""</small>
+      </button>
+      <button class="btn btn-test" (click)="testBody('empty-body')">
+        ④ 空ボディ<br><small>body なし</small>
+      </button>
+      <button class="btn btn-test btn-danger" (click)="testBody('truncated')">
+        ⑤ 途中で切れた<br><small>先頭7byteのみ送信</small>
+      </button>
+    </div>
+
+    <div *ngIf="testResult" class="test-result" [ngClass]="testResult.status">
+      <div class="result-label">{{ testResult.label }}</div>
+      <pre class="response-json">{{ formatJson(testResult.data) }}</pre>
+    </div>
+  </section>
+
   <!-- Experiment Guide -->
   <section class="card card-guide">
     <h2 class="section-title">実験手順</h2>

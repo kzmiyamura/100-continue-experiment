@@ -39,6 +39,10 @@ export class AppComponent implements OnInit, OnDestroy {
 
   // Config
   delaySeconds = 10;
+
+  // Body Format Test
+  testIdValue = '';
+  testResult: { label: string; status: string; data: any } | null = null;
   configMessage = '';
 
   // SSE / Live Log
@@ -154,6 +158,51 @@ export class AppComponent implements OnInit, OnDestroy {
 
   formatJson(obj: any): string {
     return JSON.stringify(obj, null, 2);
+  }
+
+  async testBody(type: string): Promise<void> {
+    this.testResult = null;
+    const url = '/api/test-body';
+    const headers = { 'Content-Type': 'application/json' };
+    const idVal = this.testIdValue || 'value';
+
+    const labels: Record<string, string> = {
+      'normal':       `① 正常送信 → {"id":"${idVal}"}`,
+      'null':         '② null値  → {"id":null}',
+      'empty-string': '③ 空文字列 → {"id":""}',
+      'empty-body':   '④ 空ボディ → (bodyなし)',
+      'truncated':    `⑤ 途中で切れた → 先頭7byteのみ送信`
+    };
+
+    let body: BodyInit | undefined;
+    switch (type) {
+      case 'normal':       body = JSON.stringify({ id: idVal }); break;
+      case 'null':         body = JSON.stringify({ id: null }); break;
+      case 'empty-string': body = JSON.stringify({ id: '' }); break;
+      case 'empty-body':   body = undefined; break;
+      case 'truncated':
+        // 意図的に不完全なJSONを7byteだけ送る
+        const full = JSON.stringify({ id: idVal });
+        body = new Blob([full.slice(0, 7)], { type: 'application/json' });
+        break;
+    }
+
+    try {
+      const res = await fetch(url, { method: 'POST', headers, body });
+      const data = await res.json();
+      this.testResult = {
+        label: labels[type],
+        status: res.ok ? 'result-ok' : 'result-error',
+        data
+      };
+    } catch (e: any) {
+      this.testResult = {
+        label: labels[type],
+        status: 'result-error',
+        data: { error: e.message }
+      };
+    }
+    this.cdr.detectChanges();
   }
 
   getLogClass(type: string): string {
