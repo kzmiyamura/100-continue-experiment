@@ -5,7 +5,6 @@ frontend/.angular/
 
 # Backend
 backend/target/
-backend/src/main/resources/static/
 
 # IDE
 .idea/
