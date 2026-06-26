@@ -203,6 +203,42 @@
     </div>
   </section>
 
+  <!-- Section 6: switchMap abort test -->
+  <section class="card">
+    <h2 class="section-title">
+      <span class="section-number">6</span>
+      switchMap abort テスト
+    </h2>
+    <p class="hint">
+      switchMapは新しいリクエストが来ると前のリクエストをabortします。<br>
+      サーバーは遅延（上の設定秒数）中にabortされ、ボディが届かなくなります。
+    </p>
+
+    <div class="test-buttons">
+      <button class="btn btn-test" (click)="sendViaSwitchMap('screen-A')">
+        ① 1回だけ送信<br><small>screen-A</small>
+      </button>
+      <button class="btn btn-test btn-danger" (click)="sendRapidSwitchMap()">
+        ② 連続送信（100ms間隔）<br><small>screen-A → すぐ screen-B</small>
+      </button>
+    </div>
+
+    <p class="hint" style="margin-top:8px">
+      ※ 遅延設定を <strong>5秒以上</strong> にしておくと abort が確認しやすいです
+    </p>
+
+    <div class="log-container" style="max-height:200px; margin-top:12px">
+      <div *ngIf="switchMapLog.length === 0" class="log-empty">ボタンを押してください</div>
+      <div *ngFor="let line of switchMapLog" class="log-entry" style="font-family:monospace;font-size:12px">
+        {{ line }}
+      </div>
+    </div>
+    <p class="hint" style="margin-top:8px">
+      ② で送った後、上の <strong>ライブログ（SSE）</strong> を見てください。<br>
+      screen-A のリクエストが ERROR（abortによる接続切れ）になっているはずです。
+    </p>
+  </section>
+
   <!-- Experiment Guide -->
   <section class="card card-guide">
     <h2 class="section-title">実験手順</h2>

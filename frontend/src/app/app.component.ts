@@ -9,7 +9,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription, switchMap } from 'rxjs';
 import { ApiService } from './api.service';
 
 interface LogLine {
@@ -46,6 +46,11 @@ export class AppComponent implements OnInit, OnDestroy {
 
   // Jsonb Test
   jsonbResult: { label: string; status: string; data: any } | null = null;
+
+  // switchMap Test
+  switchMapLog: string[] = [];
+  private switchMapSubject = new Subject<string>();
+  private switchMapSub: Subscription | null = null;
   configMessage = '';
 
   // SSE / Live Log
@@ -59,11 +64,56 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadConfig();
     this.connectSSE();
+    this.initSwitchMapTest();
   }
 
   ngOnDestroy(): void {
     this.sseSub?.unsubscribe();
+    this.switchMapSub?.unsubscribe();
     this.api.disconnectSSE();
+  }
+
+  initSwitchMapTest(): void {
+    // switchMapは新しい値が来たら前のHTTPリクエストをabortする
+    this.switchMapSub = this.switchMapSubject.pipe(
+      switchMap(screenId => {
+        this.addSwitchMapLog(`→ 送信開始: screenId="${screenId}" (前のリクエストはabort)`);
+        return this.api.sendData(screenId);
+      })
+    ).subscribe({
+      next: res => {
+        this.addSwitchMapLog(`✅ 受信完了: ${JSON.stringify(res).slice(0, 80)}`);
+        this.cdr.detectChanges();
+      },
+      error: err => {
+        this.addSwitchMapLog(`❌ エラー: ${err.message}`);
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  sendViaSwitchMap(screenId: string): void {
+    this.addSwitchMapLog(`📤 emit: "${screenId}"`);
+    this.switchMapSubject.next(screenId);
+    this.cdr.detectChanges();
+  }
+
+  sendRapidSwitchMap(): void {
+    this.switchMapLog = [];
+    this.addSwitchMapLog('=== 連続送信開始（switchMap） ===');
+    // 1回目を送信
+    this.sendViaSwitchMap('screen-A');
+    // すぐに2回目を送信 → 1回目がabortされる
+    setTimeout(() => {
+      this.sendViaSwitchMap('screen-B');
+    }, 100);
+  }
+
+  private addSwitchMapLog(msg: string): void {
+    const time = new Date().toLocaleTimeString('ja-JP');
+    this.switchMapLog.push(`[${time}] ${msg}`);
+    if (this.switchMapLog.length > 30) this.switchMapLog.shift();
+    this.cdr.detectChanges();
   }
 
   loadConfig(): void {
